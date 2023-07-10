@@ -11,10 +11,10 @@
 O objetivo deste projeto é escrever um analisador semântico capaz de analisar programas na linguagem LA (Linguagem Algorítmica) desenvolvida pelo prof. Jander, no âmbito do DC/UFSCar. A partir de um código fonte, o analisador detecta erros semânticos de 4 tipos, indicando a linha e o motivo de determinadas falhas. Diferentemente do analisador sintático, o programa será executado por completo, ao invés de parar imediatamente, e serão indicados todos os erros encontrados, e não apenas o primeiro.
 
 Os diferentes tipos de erros semânticos a serem identificados são:
-    * Identificador já declarado no escopo
-    * Tipo não declarado
-    * Identificador não declarado
-    * Atribuição não compatível com o tipo declarado (Ex.: Atribuir um valor lógico a uma variável declarada como inteiro)
+- Identificador já declarado no escopo
+- Tipo não declarado
+- Identificador não declarado
+- Atribuição não compatível com o tipo declarado (Ex.: Atribuir um valor lógico a uma variável declarada como inteiro)
 
 Os principais arquivos responsáveis pela conclusão do projeto são:
 
