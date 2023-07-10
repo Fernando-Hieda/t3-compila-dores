@@ -34,16 +34,16 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
              AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " declarado duas vezes num mesmo escopo");
         } else {
             TabelaDeSimbolos.TipoAlguma tipo = AlgumaSemanticoUtils.getTipo(ctx.tipo().getText());
+            
             if (tipo != null) {
                 escopoAtual.adicionar(ctx.IDENT().getText(), tipo);
             } else {
                 String nameVar = ctx.IDENT().getText();
+                
                 if (escopoAtual.existe (nameVar)) {
-                    AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar
-                            + " ja declarado anteriormente");
+                    AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar + " ja declarado anteriormente");
                 }
                 else {
-                    // SemanticoUtils.adicionarErroSemantico(id.start, "oi rs tamo adicionando " + re.name );
                     escopoAtual.adicionar(ctx.IDENT().getText(), TipoAlguma.invalido);
                 }
             }
@@ -53,23 +53,27 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitDeclaracao_tipo(ctx);
     }
 
-    //ao declarar variavel, verificamos se o identificador é novo, caso positivo podemos salvar
+    //declaracao variavel
     @Override
     public Void visitDeclaracao_variavel(Declaracao_variavelContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
+        
         for (IdentificadorContext id : ctx.variavel().identificador()) {
             String nomeId = "";
             int i = 0;
+            
             for (TerminalNode ident : id.IDENT()) {
                 if (i++ > 0){
                     nomeId += ".";
                 }
                 nomeId += ident.getText();
             }
+            
             if (escopoAtual.existe(nomeId)) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(id.start, "identificador " + nomeId + " ja declarado anteriormente");
             } else {
                 TabelaDeSimbolos.TipoAlguma tipo = AlgumaSemanticoUtils.getTipo(ctx.variavel().tipo().getText());
+                
                 if (tipo != null) {
                     escopoAtual.adicionar(nomeId, tipo);
                 } else {
@@ -84,13 +88,17 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
     @Override
     public Void visitDeclaracao_constante(Declaracao_constanteContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
+        
         if (escopoAtual.existe(ctx.IDENT().getText())) {
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "constante" + ctx.IDENT().getText() + " ja declarado anteriormente");
         } else {
             TabelaDeSimbolos.TipoAlguma tipo = TabelaDeSimbolos.TipoAlguma.inteiro;
             TabelaDeSimbolos.TipoAlguma aux = AlgumaSemanticoUtils.getTipo(ctx.tipo_basico().getText()) ;
-            if (aux != null)
+            
+            if (aux != null){
                 tipo = aux;
+            }
+            
             escopoAtual.adicionar(ctx.IDENT().getText(), tipo);
         }
 
@@ -102,15 +110,18 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
     public Void visitTipo_basico_ident(AlgumaParser.Tipo_basico_identContext ctx) {
 
         if (ctx.IDENT() != null) {
-           boolean existe = false;
-           for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
+           
+            boolean existe = false;
+           
+            for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
                 if (tabela.existe(ctx.IDENT().getText())) {
                     existe = true;
                 }
-           }
-           if (!existe) {
+            }
+           
+            if (!existe) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " nao declarado");
-           }
+            }
         }
 
         return super.visitTipo_basico_ident(ctx);
@@ -120,12 +131,15 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
     public Void visitIdentificador(IdentificadorContext ctx) {
         String nomeVar = "";
         int i = 0;
+        
         for (TerminalNode id : ctx.IDENT()){
             if (i++ > 0)
                 nomeVar += ".";
             nomeVar += id.getText();
         }
+        
         boolean erro = true;
+        
         for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()) {
 
             if (escopo.existe(nomeVar)) {
@@ -152,13 +166,16 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
             nomeVar += id.getText();
         }
         if (tipoExpressao != TabelaDeSimbolos.TipoAlguma.invalido) {
+            
             boolean found = false;
+            
             for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()){
                 if (escopo.existe(nomeVar) && !found)  {
                     found = true;
                     TabelaDeSimbolos.TipoAlguma tipoVariavel = AlgumaSemanticoUtils.verificarTipo(pilhadeTabelas, nomeVar);
                     Boolean varNumeric = tipoVariavel == TabelaDeSimbolos.TipoAlguma.real || tipoVariavel == TabelaDeSimbolos.TipoAlguma.inteiro;
                     Boolean expNumeric = tipoExpressao == TabelaDeSimbolos.TipoAlguma.real || tipoExpressao == TabelaDeSimbolos.TipoAlguma.inteiro;
+                    
                     if (!(varNumeric && expNumeric) && tipoVariavel != tipoExpressao && tipoExpressao != TabelaDeSimbolos.TipoAlguma.invalido) {
                         error = true;
                     }
@@ -179,9 +196,11 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
     //comando de retorno
     @Override
     public Void visitCmdRetorne(CmdRetorneContext ctx) {
+        
         if (pilhadeTabelas.getPilhaTabelas().returnType == TabelaDeSimbolos.TipoAlguma.Void){
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "comando retorne nao permitido nesse escopo");
         } 
+        
         return super.visitCmdRetorne(ctx);
     }
 
@@ -189,11 +208,14 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
     @Override
     public Void visitParcela_unario(Parcela_unarioContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
+        
         if (ctx.IDENT() != null) {
             String name = ctx.IDENT().getText();
+            
             if (escopoAtual.existe(ctx.IDENT().getText())) {
                 List<EntradaTabelaDeSimbolos> params = escopoAtual.getTypeProperties(name);
                 boolean error = false;
+                
                 if (params.size() != ctx.expressao().size()) {
                     error = true;
                 } else {
@@ -203,6 +225,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
                         }
                     }
                 }
+                
                 if (error) {
                     AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "incompatibilidade de parametros na chamada de " + name);
                 }

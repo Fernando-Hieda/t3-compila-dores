@@ -19,8 +19,10 @@ public class AlgumaSemanticoUtils {
     
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhaTabelas, AlgumaParser.ExpressaoContext ctx) {
         TabelaDeSimbolos.TipoAlguma ret = null;
+        
         for (Termo_logicoContext tc : ctx.termo_logico()) {
             TabelaDeSimbolos.TipoAlguma aux = verificarTipo(pilhaTabelas, tc);
+            
             if (ret == null) {
                 ret = aux;
             } else if (ret != aux && aux != TabelaDeSimbolos.TipoAlguma.invalido) {
@@ -33,8 +35,10 @@ public class AlgumaSemanticoUtils {
 
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhadeTabelas, AlgumaParser.Termo_logicoContext ctx) {
         TabelaDeSimbolos.TipoAlguma ret = null;
+        
         for (Fator_logicoContext tc : ctx.fator_logico()) {
             TabelaDeSimbolos.TipoAlguma aux = verificarTipo(pilhadeTabelas, tc);
+            
             if (ret == null) {
                 ret = aux;
             } else if (ret != aux && aux != TabelaDeSimbolos.TipoAlguma.invalido) {
@@ -53,7 +57,7 @@ public class AlgumaSemanticoUtils {
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhadeTabelas, AlgumaParser.Parcela_logicaContext ctx) {
         TabelaDeSimbolos.TipoAlguma ret = null;
 
-        if(ctx.exp_relacional() != null) {
+        if (ctx.exp_relacional() != null) {
             ret = verificarTipo(pilhadeTabelas, ctx.exp_relacional());
         } else {
             ret = TabelaDeSimbolos.TipoAlguma.logico;
@@ -66,6 +70,7 @@ public class AlgumaSemanticoUtils {
         TabelaDeSimbolos.TipoAlguma ret = null;
 
         if (ctx.op_relacional() != null) {
+            
             for (Exp_aritmeticaContext ta : ctx.exp_aritmetica()) {
                 TabelaDeSimbolos.TipoAlguma aux = verificarTipo(pilhadeTabelas, ta);
                 Boolean auxNumeric = aux == TabelaDeSimbolos.TipoAlguma.real || aux == TabelaDeSimbolos.TipoAlguma.inteiro; //casos numericos inteiros e reais se correlacionam
@@ -76,6 +81,7 @@ public class AlgumaSemanticoUtils {
                     ret = TabelaDeSimbolos.TipoAlguma.invalido;
                 }
             }
+            
             if (ret != TabelaDeSimbolos.TipoAlguma.invalido) {
                 ret = TabelaDeSimbolos.TipoAlguma.logico;
             }
@@ -133,7 +139,7 @@ public class AlgumaSemanticoUtils {
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhadeTabelas, AlgumaParser.ParcelaContext ctx) {
         TabelaDeSimbolos.TipoAlguma ret = TabelaDeSimbolos.TipoAlguma.invalido;
 
-        if(ctx.parcela_nao_unario() != null){
+        if (ctx.parcela_nao_unario() != null) {
             ret = verificarTipo(pilhadeTabelas, ctx.parcela_nao_unario());
         }
         else {
@@ -143,7 +149,7 @@ public class AlgumaSemanticoUtils {
     }
 
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhadeTabelas, AlgumaParser.Parcela_nao_unarioContext ctx) {
-        if(ctx.identificador() != null){
+        if (ctx.identificador() != null) {
             return verificarTipo(pilhadeTabelas, ctx.identificador());
         }
         return TabelaDeSimbolos.TipoAlguma.cadeia;
@@ -153,16 +159,20 @@ public class AlgumaSemanticoUtils {
         if (ctx.NUM_INT() != null) {
             return TabelaDeSimbolos.TipoAlguma.inteiro;
         }
+        
         if (ctx.NUM_REAL() != null) {
             return TabelaDeSimbolos.TipoAlguma.real;
         }
+        
         if (ctx.identificador() != null){
             return verificarTipo(pilhadeTabelas, ctx.identificador());
         }
+        
         if (ctx.IDENT() != null) {
             return verificarTipo(pilhadeTabelas, ctx.IDENT().getText());
         } else {
             TabelaDeSimbolos.TipoAlguma ret = null;
+            
             for (ExpressaoContext fa : ctx.expressao()) {
                 TabelaDeSimbolos.TipoAlguma aux = verificarTipo(pilhadeTabelas, fa);
                 if (ret == null) {
@@ -182,6 +192,7 @@ public class AlgumaSemanticoUtils {
 
         for (int i = 0; i < ctx.IDENT().size(); i++) {
             nomeVar += ctx.IDENT(i).getText();
+            
             if (i != ctx.IDENT().size() - 1) {
                 nomeVar += ".";
             }
@@ -227,6 +238,7 @@ public class AlgumaSemanticoUtils {
                 }
         return tipo;
     }
+    
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(TabelaDeSimbolos tabela, String nomeVar) {
         return tabela.verificar(nomeVar);
     }

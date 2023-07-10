@@ -56,9 +56,10 @@ public class TabelaDeSimbolos {
     }
 
     public void adicionar(String tipoNome, EntradaTabelaDeSimbolos entrada){
-        if(tipoTabela.containsKey(tipoNome)){
+        
+        if (tipoTabela.containsKey(tipoNome)) {
             tipoTabela.get(tipoNome).add(entrada);
-        }else{
+        } else {
             ArrayList<EntradaTabelaDeSimbolos> list = new ArrayList<>();
             list.add(entrada);
             tipoTabela.put(tipoNome, list);
@@ -70,7 +71,7 @@ public class TabelaDeSimbolos {
     }
 
     public TipoAlguma verificar(String nome) {
-        if(tabela.containsKey(nome))
+        if (tabela.containsKey(nome))
             return tabela.get(nome).tipo;
         return null;
     }
