@@ -458,6 +458,36 @@ public interface AlgumaListener extends ParseTreeListener {
 	 */
 	void exitDeclaracao_local(AlgumaParser.Declaracao_localContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link AlgumaParser#declaracao_variavel}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclaracao_variavel(AlgumaParser.Declaracao_variavelContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AlgumaParser#declaracao_variavel}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclaracao_variavel(AlgumaParser.Declaracao_variavelContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AlgumaParser#declaracao_constante}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclaracao_constante(AlgumaParser.Declaracao_constanteContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AlgumaParser#declaracao_constante}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclaracao_constante(AlgumaParser.Declaracao_constanteContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link AlgumaParser#declaracao_tipo}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclaracao_tipo(AlgumaParser.Declaracao_tipoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link AlgumaParser#declaracao_tipo}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclaracao_tipo(AlgumaParser.Declaracao_tipoContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link AlgumaParser#corpo}.
 	 * @param ctx the parse tree
 	 */

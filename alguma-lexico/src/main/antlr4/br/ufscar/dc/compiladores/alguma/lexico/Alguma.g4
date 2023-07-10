@@ -76,9 +76,10 @@ parametro: 'var'? identificador (',' identificador)* ':' tipo_estendido;
 parametros: parametro (',' parametro)*;
 
 //declaráveis
-declaracao_local: 'declare' variavel |
-    'constante' IDENT ':' tipo_basico '=' valor_constante |
-    'tipo' IDENT ':' tipo;
+declaracao_local: declaracao_variavel | declaracao_constante | declaracao_tipo;
+declaracao_variavel: 'declare' variavel;
+declaracao_constante: 'constante' IDENT ':' tipo_basico '=' valor_constante;
+declaracao_tipo: 'tipo' IDENT ':' tipo;
 corpo: declaracao_local* cmd*;
 
 

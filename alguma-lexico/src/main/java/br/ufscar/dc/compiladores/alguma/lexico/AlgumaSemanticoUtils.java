@@ -14,7 +14,7 @@ public class AlgumaSemanticoUtils {
     
     public static void adicionarErroSemantico(Token t, String mensagem) {
         int linha = t.getLine();
-        errosSemanticos.add(String.format("Linha %d erro: %s", linha, mensagem));
+        errosSemanticos.add(String.format("Linha %d: %s", linha, mensagem));
     }
     
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(PilhaTabelas pilhaTabelas, AlgumaParser.ExpressaoContext ctx) {
@@ -188,7 +188,7 @@ public class AlgumaSemanticoUtils {
         }
 
         for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
-            if (tabela.exists(nomeVar)) {
+            if (tabela.existe(nomeVar)) {
                 ret = verificarTipo(pilhadeTabelas, nomeVar);
             }
         }
@@ -200,13 +200,33 @@ public class AlgumaSemanticoUtils {
         TabelaDeSimbolos.TipoAlguma type = TabelaDeSimbolos.TipoAlguma.invalido;
 
         for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
-            if (tabela.exists(nomeVar)) {
+            if (tabela.existe(nomeVar)) {
                 return tabela.verificar(nomeVar);
             }
         }
         return type;
     }
 
+    public static TabelaDeSimbolos.TipoAlguma getTipo(String val){
+        TabelaDeSimbolos.TipoAlguma tipo = null;
+                switch(val) {
+                    case "literal": 
+                        tipo = TabelaDeSimbolos.TipoAlguma.cadeia;
+                        break;
+                    case "inteiro": 
+                        tipo = TabelaDeSimbolos.TipoAlguma.inteiro;
+                        break;
+                    case "real": 
+                        tipo = TabelaDeSimbolos.TipoAlguma.real;
+                        break;
+                    case "logico": 
+                        tipo = TabelaDeSimbolos.TipoAlguma.logico;
+                        break;
+                    default:
+                        break;
+                }
+        return tipo;
+    }
     public static TabelaDeSimbolos.TipoAlguma verificarTipo(TabelaDeSimbolos tabela, String nomeVar) {
         return tabela.verificar(nomeVar);
     }

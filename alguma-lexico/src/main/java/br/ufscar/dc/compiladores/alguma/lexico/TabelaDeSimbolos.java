@@ -1,21 +1,25 @@
 package br.ufscar.dc.compiladores.alguma.lexico;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-
 
 public class TabelaDeSimbolos {
     public TabelaDeSimbolos.TipoAlguma returnType;
     
     public enum TipoAlguma {
-        literal,
+        literal, //
         inteiro,
         real,
         logico,
-        tipo,
-        var,
         invalido,
         cadeia,
+        reg,
+        var,
+        constante,
+        proc,
+        func,
+        tipo,
+        Void
     }
 
     class EntradaTabelaDeSimbolos {
@@ -28,19 +32,37 @@ public class TabelaDeSimbolos {
         }
     }
 
-    private final Map<String, EntradaTabelaDeSimbolos> tabela;
+    private final HashMap<String, EntradaTabelaDeSimbolos> tabela;
+    private final HashMap<String, ArrayList<EntradaTabelaDeSimbolos>> tipoTabela;
 
     public TabelaDeSimbolos() {
-        this.tabela = new HashMap<>();
+        tabela = new HashMap<>();
+        tipoTabela = new HashMap<>();
     }
 
     public TabelaDeSimbolos(TabelaDeSimbolos.TipoAlguma returnType) {
         this.tabela = new HashMap<>();
+        tipoTabela = new HashMap<>();
         this.returnType = returnType;
     }
 
     public void adicionar(String nome, TipoAlguma tipo) {
-        tabela.put(nome, new EntradaTabelaDeSimbolos(nome, tipo));
+        EntradaTabelaDeSimbolos entrada = new EntradaTabelaDeSimbolos(nome, tipo);
+        tabela.put(nome, entrada);
+    }
+
+    public void adicionar(EntradaTabelaDeSimbolos entrada) {
+        tabela.put(entrada.nome, entrada);
+    }
+
+    public void adicionar(String tipoNome, EntradaTabelaDeSimbolos entrada){
+        if(tipoTabela.containsKey(tipoNome)){
+            tipoTabela.get(tipoNome).add(entrada);
+        }else{
+            ArrayList<EntradaTabelaDeSimbolos> list = new ArrayList<>();
+            list.add(entrada);
+            tipoTabela.put(tipoNome, list);
+        }
     }
 
     public boolean existe(String nome) {
@@ -53,8 +75,8 @@ public class TabelaDeSimbolos {
         return null;
     }
 
-    public boolean exists(String name){
-        return tabela.containsKey(name); 
+    public ArrayList<EntradaTabelaDeSimbolos> getTypeProperties(String name){
+        return tipoTabela.get(name);
     }
 }
 

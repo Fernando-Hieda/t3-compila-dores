@@ -43,8 +43,8 @@ public class Principal {
                 ProgramaContext arvore = parser.programa();
                 AlgumaSemantico as = new AlgumaSemantico();
                 as.visitPrograma(arvore);
-                AlgumaSemanticoUtils.errosSemanticos.forEach((s) -> System.out.println(s));
-
+                AlgumaSemanticoUtils.errosSemanticos.forEach((s) -> pw.println(s));
+                pw.println("Fim da compilacao");
             } catch (IOException error) {
                 error.printStackTrace();
             }

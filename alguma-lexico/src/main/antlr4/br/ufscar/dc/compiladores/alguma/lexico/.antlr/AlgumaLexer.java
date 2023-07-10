@@ -1,4 +1,4 @@
-// Generated from /home/aluno/Documentos/t2-compila-dores-main/alguma-lexico/src/main/antlr4/br/ufscar/dc/compiladores/alguma/lexico/Alguma.g4 by ANTLR 4.9.2
+// Generated from c:\Users\fehie\OneDrive\Área de Trabalho\Faculdade\Compiladores\t3\t3-compila-dores\alguma-lexico\src\main\antlr4\br\u005Cufscar\dc\compiladores\alguma\lexico\Alguma.g4 by ANTLR 4.9.2
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
