@@ -25,11 +25,12 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitPrograma(ctx);
     }
 
-    //declaracao_tipo
+    //tratamento para declaracao de tipo
     @Override
     public Void visitDeclaracao_tipo(Declaracao_tipoContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
         
+        //verifica se ja esta no escopo
         if (escopoAtual.existe(ctx.IDENT().getText())) {
              AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " declarado duas vezes num mesmo escopo");
         } else {
@@ -40,6 +41,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
             } else {
                 String nameVar = ctx.IDENT().getText();
                 
+                //verifica se ja foi declarado
                 if (escopoAtual.existe (nameVar)) {
                     AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar + " ja declarado anteriormente");
                 }
@@ -53,7 +55,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitDeclaracao_tipo(ctx);
     }
 
-    //declaracao variavel
+    //tratamento para declaracao de variavel
     @Override
     public Void visitDeclaracao_variavel(Declaracao_variavelContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
@@ -69,6 +71,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
                 nomeId += ident.getText();
             }
             
+            //verifica se ja foi declarado
             if (escopoAtual.existe(nomeId)) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(id.start, "identificador " + nomeId + " ja declarado anteriormente");
             } else {
@@ -84,11 +87,12 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitDeclaracao_variavel(ctx);
     }
 
-    //declaracao constante
+    //tratamento para declaracao de constante
     @Override
     public Void visitDeclaracao_constante(Declaracao_constanteContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
         
+        //verifica se ja foi declarado
         if (escopoAtual.existe(ctx.IDENT().getText())) {
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "constante" + ctx.IDENT().getText() + " ja declarado anteriormente");
         } else {
@@ -105,20 +109,21 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitDeclaracao_constante(ctx);
     }
 
-    //tipo-basico
+    //tratamento para tipo-basico
     @Override
     public Void visitTipo_basico_ident(AlgumaParser.Tipo_basico_identContext ctx) {
 
         if (ctx.IDENT() != null) {
            
             boolean existe = false;
-           
+            
+            //verifica se o tipo ja foi declarado pela tabela de simbolos
             for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
                 if (tabela.existe(ctx.IDENT().getText())) {
                     existe = true;
                 }
             }
-           
+
             if (!existe) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " nao declarado");
             }
@@ -127,7 +132,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitTipo_basico_ident(ctx);
     }
 
-    //identificador
+    //tratamento para identificador
     public Void visitIdentificador(IdentificadorContext ctx) {
         String nomeVar = "";
         int i = 0;
@@ -140,6 +145,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         
         boolean erro = true;
         
+        //verifica se o identificador ja foi declarado pela tabela de simbolos
         for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()) {
 
             if (escopo.existe(nomeVar)) {
@@ -151,7 +157,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitIdentificador(ctx);
     }
 
-    //para casos de atribuição
+    //tratamento para comando de atribuição
     @Override
     public Void visitCmdAtribuicao(CmdAtribuicaoContext ctx) {
         TabelaDeSimbolos.TipoAlguma tipoExpressao = AlgumaSemanticoUtils.verificarTipo(pilhadeTabelas, ctx.expressao());
@@ -165,10 +171,13 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
                 nomeVar += ".";
             nomeVar += id.getText();
         }
+        //se o tipo nao for invalido
         if (tipoExpressao != TabelaDeSimbolos.TipoAlguma.invalido) {
             
             boolean found = false;
             
+            //verifica se a atribuicao e o tipo sao compativeis
+            //variavel real recebe valor real e variavel inteiro recebe valor inteiro
             for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()){
                 if (escopo.existe(nomeVar) && !found)  {
                     found = true;
@@ -193,10 +202,11 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitCmdAtribuicao(ctx);
     }
 
-    //comando de retorno
+    //tratamento para comando de retorno
     @Override
     public Void visitCmdRetorne(CmdRetorneContext ctx) {
         
+        //verifica se o comando de retorno esta no escopo correto
         if (pilhadeTabelas.getPilhaTabelas().returnType == TabelaDeSimbolos.TipoAlguma.Void){
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "comando retorne nao permitido nesse escopo");
         } 
@@ -204,7 +214,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitCmdRetorne(ctx);
     }
 
-    //para parcela unarios
+    //tratamento para parcela unario
     @Override
     public Void visitParcela_unario(Parcela_unarioContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
