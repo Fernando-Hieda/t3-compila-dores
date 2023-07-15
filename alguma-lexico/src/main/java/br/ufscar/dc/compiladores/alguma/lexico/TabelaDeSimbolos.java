@@ -14,21 +14,22 @@ public class TabelaDeSimbolos {
         invalido,
         cadeia,
         reg,
-        var,
-        constante,
-        proc,
-        func,
-        tipo,
         Void
+    }
+
+    public enum Estrutura {
+        var, constante, proc, func, tipo
     }
 
     class EntradaTabelaDeSimbolos {
         String nome;
         TipoAlguma tipo;
+        Estrutura estrutura;
 
-        private EntradaTabelaDeSimbolos(String nome, TipoAlguma tipo) {
+        public EntradaTabelaDeSimbolos(String nome, TipoAlguma tipo, Estrutura estrutura) {
             this.nome = nome;
             this.tipo = tipo;
+            this.estrutura = estrutura;
         }
     }
 
@@ -46,8 +47,8 @@ public class TabelaDeSimbolos {
         this.returnType = returnType;
     }
 
-    public void adicionar(String nome, TipoAlguma tipo) {
-        EntradaTabelaDeSimbolos entrada = new EntradaTabelaDeSimbolos(nome, tipo);
+    public void adicionar(String nome, TipoAlguma tipo, Estrutura estrutura) {
+        EntradaTabelaDeSimbolos entrada = new EntradaTabelaDeSimbolos(nome, tipo, estrutura);
         tabela.put(nome, entrada);
     }
 
@@ -80,7 +81,3 @@ public class TabelaDeSimbolos {
         return tipoTabela.get(name);
     }
 }
-
-
-
-

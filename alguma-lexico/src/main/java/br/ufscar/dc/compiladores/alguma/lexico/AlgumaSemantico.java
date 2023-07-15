@@ -1,5 +1,6 @@
 package br.ufscar.dc.compiladores.alguma.lexico;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -11,8 +12,11 @@ import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.Declaracao_tipoConte
 import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.Declaracao_variavelContext;
 import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.IdentificadorContext;
 import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.Parcela_unarioContext;
+import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.VariavelContext;
 import br.ufscar.dc.compiladores.alguma.lexico.TabelaDeSimbolos.EntradaTabelaDeSimbolos;
 import br.ufscar.dc.compiladores.alguma.lexico.TabelaDeSimbolos.TipoAlguma;
+import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.Declaracao_globalContext;
+import br.ufscar.dc.compiladores.alguma.lexico.AlgumaParser.ParametroContext;
 
 public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
 
@@ -25,35 +29,68 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitPrograma(ctx);
     }
 
-    //declaracao_tipo
+    //tratamento para declaracao de tipo
     @Override
     public Void visitDeclaracao_tipo(Declaracao_tipoContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
         
+        //verifica se ja esta no escopo
         if (escopoAtual.existe(ctx.IDENT().getText())) {
              AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " declarado duas vezes num mesmo escopo");
         } else {
             TabelaDeSimbolos.TipoAlguma tipo = AlgumaSemanticoUtils.getTipo(ctx.tipo().getText());
             
             if (tipo != null) {
-                escopoAtual.adicionar(ctx.IDENT().getText(), tipo);
-            } else {
+                escopoAtual.adicionar(ctx.IDENT().getText(), tipo, TabelaDeSimbolos.Estrutura.tipo);
+            } else if (ctx.tipo().registro() != null) {
                 String nameVar = ctx.IDENT().getText();
                 
+                //verifica se ja foi declarado
+                if (escopoAtual.existe (nameVar)) {
+                    AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar + " ja declarado anteriormente");
+                }
+                else  {
+                    escopoAtual.adicionar(ctx.IDENT().getText(), TipoAlguma.invalido, TabelaDeSimbolos.Estrutura.tipo);
+                }
+
+                ArrayList<TabelaDeSimbolos.EntradaTabelaDeSimbolos> varReg = new ArrayList<>();
+                for (VariavelContext va : ctx.tipo().registro().variavel()) {
+                    TabelaDeSimbolos.TipoAlguma tipoRegistroAlguma =  AlgumaSemanticoUtils.getTipo(va.tipo().getText());
+                    
+                    for (IdentificadorContext id2 : va.identificador()) {
+                        varReg.add(escopoAtual.new EntradaTabelaDeSimbolos(id2.getText(), tipoRegistroAlguma, TabelaDeSimbolos.Estrutura.tipo));
+                    }
+                }
+
+                for (TabelaDeSimbolos.EntradaTabelaDeSimbolos re : varReg) {
+                    String nomeIdentificador = ctx.IDENT().getText() + '.' + re.nome;
+                    
+                    if (escopoAtual.existe(nomeIdentificador)) {
+                        AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar + " ja declarado anteriormente");
+                    } else {
+                        escopoAtual.adicionar(re);
+                        escopoAtual.adicionar(ctx.IDENT().getText(), re);
+                    }
+                }
+            } else{
+                //tipo desconhecido
+                String nameVar = ctx.IDENT().getText();
+                
+                //verifica se ja foi declarado
                 if (escopoAtual.existe (nameVar)) {
                     AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nameVar + " ja declarado anteriormente");
                 }
                 else {
-                    escopoAtual.adicionar(ctx.IDENT().getText(), TipoAlguma.invalido);
+                    escopoAtual.adicionar(ctx.IDENT().getText(), TipoAlguma.invalido, TabelaDeSimbolos.Estrutura.tipo);
                 }
             }
             TabelaDeSimbolos.TipoAlguma t =  AlgumaSemanticoUtils.getTipo(ctx.tipo().getText());
-            escopoAtual.adicionar(ctx.IDENT().getText(), t);
+            escopoAtual.adicionar(ctx.IDENT().getText(), t, TabelaDeSimbolos.Estrutura.tipo);
         }
         return super.visitDeclaracao_tipo(ctx);
     }
 
-    //declaracao variavel
+    //tratamento para declaracao de variavel
     @Override
     public Void visitDeclaracao_variavel(Declaracao_variavelContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
@@ -69,26 +106,90 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
                 nomeId += ident.getText();
             }
             
+            //verifica se ja foi declarado
             if (escopoAtual.existe(nomeId)) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(id.start, "identificador " + nomeId + " ja declarado anteriormente");
             } else {
                 TabelaDeSimbolos.TipoAlguma tipo = AlgumaSemanticoUtils.getTipo(ctx.variavel().tipo().getText());
                 
                 if (tipo != null) {
-                    escopoAtual.adicionar(nomeId, tipo);
+                    escopoAtual.adicionar(nomeId, tipo, TabelaDeSimbolos.Estrutura.tipo);
                 } else {
-                    escopoAtual.adicionar(nomeId, TipoAlguma.invalido);
+                    TerminalNode identTipo =    ctx.variavel().tipo() != null
+                                                && ctx.variavel().tipo().tipo_estendido() != null 
+                                                && ctx.variavel().tipo().tipo_estendido().tipo_basico_ident() != null  
+                                                && ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT() != null 
+                                                ? ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT() : null;
+                    
+                    if(identTipo != null){
+                        ArrayList<TabelaDeSimbolos.EntradaTabelaDeSimbolos> regVars = null;
+                        boolean found = false;
+                        
+                        for(TabelaDeSimbolos t: pilhadeTabelas.getPilha()){
+                            if(!found){
+                                if(t.existe(identTipo.getText())){
+                                    regVars = t.getTypeProperties(identTipo.getText());
+                                    found = true;
+                                }
+                            }
+                        }
+
+                        if (escopoAtual.existe(nomeId)) {
+                            
+                            AlgumaSemanticoUtils.adicionarErroSemantico(id.start, "identificador " + nomeId + " ja declarado anteriormente");
+                        
+                        } else {
+                            escopoAtual.adicionar(nomeId, TabelaDeSimbolos.TipoAlguma.reg, TabelaDeSimbolos.Estrutura.var);
+                            
+                            for(TabelaDeSimbolos.EntradaTabelaDeSimbolos s: regVars){
+                                escopoAtual.adicionar(nomeId + "." + s.nome, s.tipo, TabelaDeSimbolos.Estrutura.var);
+                            }   
+                        }
+                        
+                    } else if (ctx.variavel().tipo().registro() != null) {
+                        ArrayList<TabelaDeSimbolos.EntradaTabelaDeSimbolos> varReg = new ArrayList<>();
+                        
+                        for (VariavelContext va : ctx.variavel().tipo().registro().variavel()){
+                            TabelaDeSimbolos.TipoAlguma tipoReg =  AlgumaSemanticoUtils.getTipo(va.tipo().getText());
+                            
+                            for (IdentificadorContext id2 : va.identificador()) {
+                                varReg.add(escopoAtual.new EntradaTabelaDeSimbolos(id2.getText(), tipoReg, TabelaDeSimbolos.Estrutura.var));
+                            }
+                        }  
+                        escopoAtual.adicionar(nomeId, TabelaDeSimbolos.TipoAlguma.reg, TabelaDeSimbolos.Estrutura.var);
+
+                        for (TabelaDeSimbolos.EntradaTabelaDeSimbolos re : varReg) {
+                            String nameVar = nomeId + '.' + re.nome;
+                            
+                            if (escopoAtual.existe(nameVar)) {
+                                AlgumaSemanticoUtils.adicionarErroSemantico(id.start, "identificador " + nameVar + " ja declarado anteriormente");
+                            } else {
+                                escopoAtual.adicionar(re);
+                                escopoAtual.adicionar(nameVar, re.tipo, TabelaDeSimbolos.Estrutura.var);
+                            }
+                        }
+                    } else {//tratamento para tipo registro estendido e tipo desconhecido
+                        TabelaDeSimbolos.TipoAlguma tipo_estendido =  AlgumaSemanticoUtils.getTipo(ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().getText());
+                        
+                        if (tipo_estendido != null) {
+                            escopoAtual.adicionar(nomeId, tipo_estendido, TabelaDeSimbolos.Estrutura.var);
+                        } else {
+                            escopoAtual.adicionar(nomeId, TipoAlguma.invalido, TabelaDeSimbolos.Estrutura.var);
+                        }
+                        // escopoAtual.adicionar(id.getText(), TabelaDeSimbolos.TipoAlguma.inteiro, TabelaDeSimbolos.Estrutura.var);
+                    }
                 }
             }
         }
         return super.visitDeclaracao_variavel(ctx);
     }
 
-    //declaracao constante
+    //tratamento para declaracao de constante
     @Override
     public Void visitDeclaracao_constante(Declaracao_constanteContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
         
+        //verifica se ja foi declarado
         if (escopoAtual.existe(ctx.IDENT().getText())) {
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "constante" + ctx.IDENT().getText() + " ja declarado anteriormente");
         } else {
@@ -99,26 +200,27 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
                 tipo = aux;
             }
             
-            escopoAtual.adicionar(ctx.IDENT().getText(), tipo);
+            escopoAtual.adicionar(ctx.IDENT().getText(), tipo, TabelaDeSimbolos.Estrutura.constante);
         }
 
         return super.visitDeclaracao_constante(ctx);
     }
 
-    //tipo-basico
+    //tratamento para tipo-basico
     @Override
     public Void visitTipo_basico_ident(AlgumaParser.Tipo_basico_identContext ctx) {
 
         if (ctx.IDENT() != null) {
            
             boolean existe = false;
-           
+            
+            //verifica se o tipo ja foi declarado pela tabela de simbolos
             for (TabelaDeSimbolos tabela : pilhadeTabelas.getPilha()) {
                 if (tabela.existe(ctx.IDENT().getText())) {
                     existe = true;
                 }
             }
-           
+
             if (!existe) {
                 AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "tipo " + ctx.IDENT().getText() + " nao declarado");
             }
@@ -127,7 +229,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitTipo_basico_ident(ctx);
     }
 
-    //identificador
+    //tratamento para identificador
     public Void visitIdentificador(IdentificadorContext ctx) {
         String nomeVar = "";
         int i = 0;
@@ -140,6 +242,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         
         boolean erro = true;
         
+        //verifica se o identificador ja foi declarado pela tabela de simbolos
         for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()) {
 
             if (escopo.existe(nomeVar)) {
@@ -151,28 +254,32 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitIdentificador(ctx);
     }
 
-    //para casos de atribuição
+    //tratamento para comando de atribuição
     @Override
     public Void visitCmdAtribuicao(CmdAtribuicaoContext ctx) {
         TabelaDeSimbolos.TipoAlguma tipoExpressao = AlgumaSemanticoUtils.verificarTipo(pilhadeTabelas, ctx.expressao());
         boolean error = false;
         String pointerChar = ctx.getText().charAt(0) == '^' ? "^" : "";
-        String nomeVar = "";
+        String nomeIdentificador = "";
         int i = 0;
 
         for (TerminalNode id : ctx.identificador().IDENT()){
+            //tipo registro
             if (i++ > 0)
-                nomeVar += ".";
-            nomeVar += id.getText();
+                nomeIdentificador += ".";
+            nomeIdentificador += id.getText();
         }
+        //se o tipo nao for invalido
         if (tipoExpressao != TabelaDeSimbolos.TipoAlguma.invalido) {
             
             boolean found = false;
             
+            //verifica se a atribuicao e o tipo sao compativeis
+            //variavel real recebe valor real e variavel inteiro recebe valor inteiro
             for (TabelaDeSimbolos escopo : pilhadeTabelas.getPilha()){
-                if (escopo.existe(nomeVar) && !found)  {
+                if (escopo.existe(nomeIdentificador) && !found)  {
                     found = true;
-                    TabelaDeSimbolos.TipoAlguma tipoVariavel = AlgumaSemanticoUtils.verificarTipo(pilhadeTabelas, nomeVar);
+                    TabelaDeSimbolos.TipoAlguma tipoVariavel = AlgumaSemanticoUtils.verificarTipo(pilhadeTabelas, nomeIdentificador);
                     Boolean varNumeric = tipoVariavel == TabelaDeSimbolos.TipoAlguma.real || tipoVariavel == TabelaDeSimbolos.TipoAlguma.inteiro;
                     Boolean expNumeric = tipoExpressao == TabelaDeSimbolos.TipoAlguma.real || tipoExpressao == TabelaDeSimbolos.TipoAlguma.inteiro;
                     
@@ -186,17 +293,18 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         }
 
         if (error) {
-            nomeVar = ctx.identificador().getText();
-            AlgumaSemanticoUtils.adicionarErroSemantico(ctx.identificador().start, "atribuicao nao compativel para " + pointerChar + nomeVar );
+            nomeIdentificador = ctx.identificador().getText();
+            AlgumaSemanticoUtils.adicionarErroSemantico(ctx.identificador().start, "atribuicao nao compativel para " + pointerChar + nomeIdentificador );
         }
 
         return super.visitCmdAtribuicao(ctx);
     }
 
-    //comando de retorno
+    //tratamento para comando de retorno
     @Override
     public Void visitCmdRetorne(CmdRetorneContext ctx) {
         
+        //verifica se o comando de retorno esta no escopo correto
         if (pilhadeTabelas.getPilhaTabelas().returnType == TabelaDeSimbolos.TipoAlguma.Void){
             AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "comando retorne nao permitido nesse escopo");
         } 
@@ -204,7 +312,7 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         return super.visitCmdRetorne(ctx);
     }
 
-    //para parcela unarios
+    //tratamento para parcela unario
     @Override
     public Void visitParcela_unario(Parcela_unarioContext ctx) {
         TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
@@ -233,5 +341,89 @@ public class AlgumaSemantico extends AlgumaBaseVisitor<Void> {
         }
 
         return super.visitParcela_unario(ctx);
+    }
+
+    @Override
+    public Void visitDeclaracao_global(Declaracao_globalContext ctx) {
+        TabelaDeSimbolos escopoAtual = pilhadeTabelas.getPilhaTabelas();
+
+        if (escopoAtual.existe(ctx.IDENT().getText())) {
+            AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, ctx.IDENT().getText() + " ja declarado anteriormente");
+        } else {
+            TabelaDeSimbolos.TipoAlguma returnTypeFuncAlguma = TabelaDeSimbolos.TipoAlguma.Void;
+
+            if (ctx.getText().startsWith("funcao")) {
+                returnTypeFuncAlguma = AlgumaSemanticoUtils.getTipo(ctx.tipo_estendido().getText());
+                escopoAtual.adicionar(ctx.IDENT().getText(), returnTypeFuncAlguma,TabelaDeSimbolos.Estrutura.func);
+            } else {
+                returnTypeFuncAlguma = TabelaDeSimbolos.TipoAlguma.Void;
+                escopoAtual.adicionar(ctx.IDENT().getText(), returnTypeFuncAlguma,TabelaDeSimbolos.Estrutura.proc);
+            }
+
+            TabelaDeSimbolos escopoGlobal = escopoAtual;
+            pilhadeTabelas.create(returnTypeFuncAlguma);
+            
+            escopoAtual = pilhadeTabelas.getPilhaTabelas();
+
+            if (ctx.parametros() != null) {
+                for (ParametroContext parametro : ctx.parametros().parametro()) {
+                    for (IdentificadorContext identificador : parametro.identificador()) {
+                        String nomeIdentificador = "";
+                        int i = 0;
+                        
+                        for (TerminalNode ident : identificador.IDENT()) {
+                            if (i++ >= 1) {
+                                nomeIdentificador += ".";
+                            }
+                            nomeIdentificador += ident.getText();
+                        }
+
+                        if (escopoAtual.existe(nomeIdentificador)) {
+                            AlgumaSemanticoUtils.adicionarErroSemantico(ctx.start, "identificador " + nomeIdentificador + " ja declarado anteriormente");
+                        } else {
+                            TabelaDeSimbolos.TipoAlguma tipo = AlgumaSemanticoUtils.getTipo(parametro.tipo_estendido().getText());
+
+                            if (tipo != null) {
+                                EntradaTabelaDeSimbolos entrada = escopoAtual.new EntradaTabelaDeSimbolos(nomeIdentificador, tipo, TabelaDeSimbolos.Estrutura.var);
+                                escopoAtual.adicionar(entrada);
+                                escopoGlobal.adicionar(ctx.IDENT().getText(), entrada);
+
+                            } else {
+                                TerminalNode identTipo =    parametro.tipo_estendido().tipo_basico_ident() != null  
+                                                            && parametro.tipo_estendido().tipo_basico_ident().IDENT() != null 
+                                                            ? parametro.tipo_estendido().tipo_basico_ident().IDENT() : null;
+                                if (identTipo != null) {
+                                    ArrayList<TabelaDeSimbolos.EntradaTabelaDeSimbolos> regVars = null;
+                                    boolean found = false;
+                                    
+                                    for(TabelaDeSimbolos t: pilhadeTabelas.getPilha()){
+                                        if(!found){
+                                            if(t.existe(identTipo.getText())){
+                                                regVars = t.getTypeProperties(identTipo.getText());
+                                                found = true;
+                                            }
+                                        }
+                                    }
+
+                                    if(escopoAtual.existe(nomeIdentificador)){
+                                        AlgumaSemanticoUtils.adicionarErroSemantico(identificador.start, "identificador " + nomeIdentificador + " ja declarado anteriormente");
+                                    } else {
+                                        EntradaTabelaDeSimbolos entrada = escopoAtual.new EntradaTabelaDeSimbolos(nomeIdentificador, TabelaDeSimbolos.TipoAlguma.reg, TabelaDeSimbolos.Estrutura.var);
+                                        escopoAtual.adicionar(entrada);
+                                        escopoGlobal.adicionar(ctx.IDENT().getText(), entrada);
+
+                                        for(TabelaDeSimbolos.EntradaTabelaDeSimbolos s: regVars){
+                                            escopoAtual.adicionar(nomeIdentificador + "." + s.nome, s.tipo, TabelaDeSimbolos.Estrutura.var);
+                                        }   
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //pilhadeTabelas.dropPilhaTabelas();
+        return super.visitDeclaracao_global(ctx);
     }
 }

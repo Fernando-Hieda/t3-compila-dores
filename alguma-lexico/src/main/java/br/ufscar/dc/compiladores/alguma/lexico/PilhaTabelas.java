@@ -31,8 +31,8 @@ public class PilhaTabelas {
     }
 
     public boolean identExists(String name){
-        for(TabelaDeSimbolos pilhaTabelas : pilha) {
-            if(!pilhaTabelas.existe(name)) {
+        for (TabelaDeSimbolos pilhaTabelas : pilha) {
+            if (!pilhaTabelas.existe(name)) {
                 return true;
             }
         }
