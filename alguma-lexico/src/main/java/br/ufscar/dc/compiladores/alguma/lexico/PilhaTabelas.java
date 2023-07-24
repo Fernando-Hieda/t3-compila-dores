@@ -9,11 +9,6 @@ public class PilhaTabelas {
         create(returnType);
     }
 
-    public PilhaTabelas(TabelaDeSimbolos t){
-        pilha = new LinkedList<>();
-        pilha.push(t);
-    }
-
     public void create(TabelaDeSimbolos.TipoAlguma returnType){
         pilha.push(new TabelaDeSimbolos(returnType));
     }

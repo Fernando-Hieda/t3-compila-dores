@@ -238,8 +238,4 @@ public class AlgumaSemanticoUtils {
                 }
         return tipo;
     }
-    
-    public static TabelaDeSimbolos.TipoAlguma verificarTipo(TabelaDeSimbolos tabela, String nomeVar) {
-        return tabela.verificar(nomeVar);
-    }
 }

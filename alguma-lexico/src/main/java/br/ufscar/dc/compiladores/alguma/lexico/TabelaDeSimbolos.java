@@ -36,11 +36,6 @@ public class TabelaDeSimbolos {
     private final HashMap<String, EntradaTabelaDeSimbolos> tabela;
     private final HashMap<String, ArrayList<EntradaTabelaDeSimbolos>> tipoTabela;
 
-    public TabelaDeSimbolos() {
-        tabela = new HashMap<>();
-        tipoTabela = new HashMap<>();
-    }
-
     public TabelaDeSimbolos(TabelaDeSimbolos.TipoAlguma returnType) {
         this.tabela = new HashMap<>();
         tipoTabela = new HashMap<>();
@@ -72,9 +67,7 @@ public class TabelaDeSimbolos {
     }
 
     public TipoAlguma verificar(String nome) {
-        if (tabela.containsKey(nome))
-            return tabela.get(nome).tipo;
-        return null;
+        return tabela.get(nome).tipo;
     }
 
     public ArrayList<EntradaTabelaDeSimbolos> getTypeProperties(String name){
